@@ -1,5 +1,5 @@
 # author: Christopher Alexander, Jennifer Hoang, Michelle Wang, Wenxin Xiang
-# date: 2022-03-01
+# date: 2022-03-15
 
 library(dash)
 library(dashHtmlComponents)
@@ -11,7 +11,7 @@ library(purrr)
 library(readr)
 library(dplyr)
 
-# read data ------
+# Read data ------
 
 df <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv")
 df <- na.omit(df)
@@ -28,7 +28,7 @@ app <- Dash$new(
 app$title("Spotify Explorer App")
 
 
-# navbar -------------
+# Navbar -------------
 
 NAV_STYLE <- list(
   "height" = "50px",
@@ -55,20 +55,13 @@ navbar <- dbcNavbar(
 
 # Tab layout -------------
 
-TAB_STYLE <- list(
-  "marginBottom" = 20,
-  "height" = "50px",
-  "padding" = "3px 0 0 320px",
-  "color" = "white",
-  "fontSize" = "medium"
-)
-
 get_tab_section <- htmlDiv(list(
   dccTabs(id = "tab", value = "tab-1", children = list(
     dccTab(label = "Artists/Genres", value = "tab-1"),
     dccTab(label = "Song Characteristics", value = "tab-2")
   )),
-  htmlDiv(id = "tab-content")
+  htmlBr(),
+  htmlDiv(id = "tab-content", style = list("padding" = "10px 10 10 10px"))
 ))
 
 
@@ -92,7 +85,8 @@ footer <- dbcContainer(
     htmlBr(),
     htmlFooter(
       list(
-        "(C) Copyright MIT License: Christopher Alexander, Jennifer Hoang, Michelle Wang, Wenxin (Thea) Xiang."
+        "(C) Copyright MIT License: Christopher Alexander, Jennifer Hoang, Michelle Wang, Wenxin (Thea) Xiang. ",
+        paste0("Last time updated on ",{Sys.Date()})
       ),
       style = FOOTER_STYLE
     )
@@ -163,8 +157,10 @@ get_artist_section <- htmlDiv(
     dbcRow(list(
       artist_sidebar_widgets,
       dbcCol(list(
-        dbcRow(list(htmlH3("Top Artists by Genre"),
-                    dccGraph(id = "top_artists_plot"))),
+        dbcRow(list(
+          htmlH3("Top Artists by Genre"),
+          dccGraph(id = "top_artists_plot")
+        )),
         dbcRow(list(
           dbcCol(list(
             htmlH3("Artist's Popularity Over Time"),
@@ -172,7 +168,7 @@ get_artist_section <- htmlDiv(
           )),
           dbcCol(list(
             htmlH3("Artist's Popularity Record")
-#            dccGraph(id = "plot_3")
+            #            dccGraph(id = "plot_3")
           ))
         ))
       ))
@@ -185,7 +181,7 @@ get_artist_section <- htmlDiv(
 
 popularity_sidebar_widgets <- dbcCol(
   children = list(
-    htmlH2("Explore music characteristics", className="display-30"),
+    htmlH2("Explore music characteristics", className = "display-30"),
     htmlBr(),
     htmlH5("Music Features:"),
     dccDropdown(
@@ -206,7 +202,6 @@ popularity_sidebar_widgets <- dbcCol(
       value = "danceability"
     ),
     htmlBr(),
-    
     htmlH5("Music Genres:"),
     dccDropdown(
       id = "genres",
@@ -238,7 +233,7 @@ get_popularity_section <- htmlDiv(
         dccGraph(id = "pop_unpop_id_plot")
       ))
     ))
-    )
+  )
 )
 
 
@@ -259,7 +254,7 @@ app$callback(
 # Top artists plot ----
 
 #' Plot top 10 artists per genre by average track popularity
-#' 
+#'
 #' @param genre genre of artist
 #' @return ggplot bar plot object
 app$callback(
@@ -292,7 +287,7 @@ app$callback(
 
     p <- ggplot(df_artist, aes(x = date, y = track_popularity)) +
       geom_line(stat = "summary", fun = mean) +
-      labs(x = "Date", y = "Avg track Popularity") +
+      labs(x = "Date", y = "Average track Popularity") +
       scale_x_date(date_labels = "%b-%Y") +
       ggthemes::scale_color_tableau()
 
@@ -304,7 +299,7 @@ app$callback(
 # Song Characteristic Distribution Plot ----
 
 #' Plot density plot of song characteristics distribution with two popularity classes
-#' 
+#'
 #' @param genre genre of songs
 #' @param feat song features to explore on x-axis
 #' @return a ggplot showing the distribution
@@ -315,23 +310,26 @@ app$callback(
     input("xcol-widget", "value")
   ),
   function(genre, feat) {
-    
     data_pop <- df
     data_pop$`Duration (min)` <- data_pop$duration_ms / 60000
-    data_pop$`Popularity class` = if_else(
+    data_pop$`Popularity class` <- if_else(
       data_pop$track_popularity <= median(data_pop$track_popularity),
       "Not popular",
       "Popular"
     )
     data_pop$Genres <- data_pop$playlist_genre
-    data_pop$Genres <- replace(data_pop$Genres, 
-                               data_pop$Genres == "edm", 
-                               "electronic dance music")
+    data_pop$Genres <- replace(
+      data_pop$Genres,
+      data_pop$Genres == "edm",
+      "electronic dance music"
+    )
     data_pop_query <- data_pop %>%
       filter(Genres == genre)
     plot <- ggplot(data_pop_query) +
-      aes(x = !!sym(feat),
-          color = `Popularity class`) +
+      aes(
+        x = !!sym(feat),
+        color = `Popularity class`
+      ) +
       geom_density() +
       labs(x = str_to_title(feat)) +
       theme(
@@ -341,6 +339,7 @@ app$callback(
   }
 )
 
-# app server --------------
+# App server --------------
 
-app$run_server(debug = T)
+# app$run_server(debug = T)
+app$run_server(host = '0.0.0.0')
