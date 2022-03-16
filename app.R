@@ -21,13 +21,14 @@ df$date <- as.Date(df$track_album_release_date, format = "%Y-%m-%d")
 
 # Set up app frontend -----
 app <- Dash$new(
-  external_stylesheets = dbcThemes$MINTY
+  external_stylesheets = dbcThemes$MINTY,
+  suppress_callback_exceptions = T
 )
 
 app$title("Spotify Explorer App")
 
 
-# navbar ------
+# navbar -------------
 
 NAV_STYLE <- list(
   "height" = "50px",
@@ -52,7 +53,7 @@ navbar <- dbcNavbar(
   )
 )
 
-# tab layout -------------
+# Tab layout -------------
 
 TAB_STYLE <- list(
   "marginBottom" = 20,
@@ -70,7 +71,8 @@ get_tab_section <- htmlDiv(list(
   htmlDiv(id = "tab-content")
 ))
 
-# Footer --
+
+# Footer -------------
 
 FOOTER_STYLE <- list(
   "position" = "fixed",
@@ -98,9 +100,24 @@ footer <- dbcContainer(
 )
 
 
-# get_artist_section widget + plot
+# Overall app layout ----
 
-sidebar_widgets <- dbcCol(
+app$layout(htmlDiv(
+  dbcRow(list(
+    navbar,
+    dbcCol(
+      get_tab_section
+    ),
+    footer
+  ),
+  style = list("backgroundColor" = "#eeeeef")
+  )
+))
+
+
+# Artist sidebar widgets and plots (tab-1) -------
+
+artist_sidebar_widgets <- dbcCol(
   children = list(
     htmlH2("Overview", className = "display-30"),
     htmlH6(
@@ -141,26 +158,10 @@ sidebar_widgets <- dbcCol(
   width = list("offset" = 1, "size" = 3)
 )
 
-
-# app layout ----
-app$layout(htmlDiv(
-  dbcRow(list(
-    navbar,
-    dbcCol(
-      get_tab_section
-    ),
-    footer
-  ),
-  style = list("backgroundColor" = "#eeeeef")
-  )
-))
-
-
-# get_artist_section -------
 get_artist_section <- htmlDiv(
   list(
     dbcRow(list(
-      sidebar_widgets,
+      artist_sidebar_widgets,
       dbcCol(list(
         dbcRow(list(htmlH3("Top Artists by Genre"),
                     dccGraph(id = "top_artists_plot"))),
@@ -180,13 +181,68 @@ get_artist_section <- htmlDiv(
 )
 
 
-# get_popularity_section -------
-get_popularity_section <- htmlDiv(
-  list(htmlH3("Song Characteristics Distribution between Two Popularity Classes"))
+# Popularity sidebar widgets and plots (tab-2)  ----
+
+popularity_sidebar_widgets <- dbcCol(
+  children = list(
+    htmlH2("Explore music characteristics", className="display-30"),
+    htmlBr(),
+    htmlH5("Music Features:"),
+    dccDropdown(
+      id = "xcol-widget",
+      style = list("border-width" = "0", "width" = "100%"),
+      options = list(
+        list(label = "Danceability", value = "danceability"),
+        list(label = "Energy", value = "energy"),
+        list(label = "Loudness", value = "loudness"),
+        list(label = "Acousticness", value = "acousticness"),
+        list(label = "Speechiness", value = "speechiness"),
+        list(label = "Instrumentalness", value = "instrumentalness"),
+        list(label = "Liveness", value = "liveness"),
+        list(label = "Valence", value = "valence"),
+        list(label = "Tempo", value = "tempo"),
+        list(label = "Duration (min)", value = "Duration (min)")
+      ),
+      value = "danceability"
+    ),
+    htmlBr(),
+    
+    htmlH5("Music Genres:"),
+    dccDropdown(
+      id = "genres",
+      style = list("border-width" = "0", "width" = "100%"),
+      options = list(
+        list(
+          label = "Electronic dance music",
+          value = "electronic dance music"
+        ),
+        list(label = "Pop", value = "pop"),
+        list(label = "Rap", value = "rap"),
+        list(label = "Rock", value = "rock"),
+        list(label = "Latin", value = "latin"),
+        list(label = "R&B", value = "r&b")
+      ),
+      value = "electronic dance music",
+    )
+  ),
+  width = list("offset" = 1, "size" = 3)
 )
 
 
-# Switch Tab ----
+get_popularity_section <- htmlDiv(
+  list(
+    dbcRow(list(
+      popularity_sidebar_widgets,
+      dbcCol(list(
+        htmlH3("Song Characteristics Distribution between Two Popularity Classes"),
+        dccGraph(id = "pop_unpop_id_plot")
+      ))
+    ))
+    )
+)
+
+
+# Switch Tabs ----
 app$callback(
   output(id = "tab-content", property = "children"),
   list(input(id = "tab", property = "value")),
@@ -201,6 +257,11 @@ app$callback(
 
 
 # Top artists plot ----
+
+#' Plot top 10 artists per genre by average track popularity
+#' 
+#' @param genre genre of artist
+#' @return ggplot bar plot object
 app$callback(
   output("top_artists_plot", "figure"),
   list(input("genre_select", "value")),
@@ -236,6 +297,47 @@ app$callback(
       ggthemes::scale_color_tableau()
 
     ggplotly(p)
+  }
+)
+
+
+# Song Characteristic Distribution Plot ----
+
+#' Plot density plot of song characteristics distribution with two popularity classes
+#' 
+#' @param genre genre of songs
+#' @param feat song features to explore on x-axis
+#' @return a ggplot showing the distribution
+app$callback(
+  output("pop_unpop_id_plot", "figure"),
+  list(
+    input("genres", "value"),
+    input("xcol-widget", "value")
+  ),
+  function(genre, feat) {
+    
+    data_pop <- df
+    data_pop$`Duration (min)` <- data_pop$duration_ms / 60000
+    data_pop$`Popularity class` = if_else(
+      data_pop$track_popularity <= median(data_pop$track_popularity),
+      "Not popular",
+      "Popular"
+    )
+    data_pop$Genres <- data_pop$playlist_genre
+    data_pop$Genres <- replace(data_pop$Genres, 
+                               data_pop$Genres == "edm", 
+                               "electronic dance music")
+    data_pop_query <- data_pop %>%
+      filter(Genres == genre)
+    plot <- ggplot(data_pop_query) +
+      aes(x = !!sym(feat),
+          color = `Popularity class`) +
+      geom_density() +
+      labs(x = str_to_title(feat)) +
+      theme(
+        text = element_text(size = 14)
+      )
+    ggplotly(plot)
   }
 )
 
