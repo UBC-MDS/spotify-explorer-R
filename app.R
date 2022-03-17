@@ -3,17 +3,16 @@
 
 library(dash)
 library(dashHtmlComponents)
-library(dashBootstrapComponents)
-library(dashCoreComponents)
 library(ggplot2)
 library(plotly)
 library(purrr)
 library(readr)
 library(dplyr)
+library(here)
 
 # Read data ------
 
-df <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv")
+df <- read_csv(here("data", "raw", "spotify.csv"))
 df <- na.omit(df)
 
 df$date <- as.Date(df$track_album_release_date, format = "%Y-%m-%d")
@@ -121,7 +120,7 @@ artist_sidebar_widgets <- dbcCol(
     ),
     htmlBr(),
     htmlBr(),
-    htmlLabel("Artist Genre:"),
+    htmlH5("Artist Genre:"),
     dccDropdown(
       id = "genre_select",
       style = list("border-width" = "0", "width" = "100%"),
@@ -168,7 +167,7 @@ get_artist_section <- htmlDiv(
           )),
           dbcCol(list(
             htmlH3("Artist's Popularity Record")
-            #            dccGraph(id = "plot_3")
+            #dccGraph(id='artist_pop_hist_id')
           ))
         ))
       ))
@@ -229,8 +228,8 @@ get_popularity_section <- htmlDiv(
     dbcRow(list(
       popularity_sidebar_widgets,
       dbcCol(list(
-        htmlH3("Song Characteristics Distribution between Two Popularity Classes"),
-        dccGraph(id = "pop_unpop_id_plot")
+        htmlH3("Song Characteristics Distribution between Two Popularity Classes")
+        # dccGraph(id = "pop_unpop_id_plot")
       ))
     ))
   )
@@ -267,7 +266,7 @@ app$callback(
       summarise(mean_popularity = mean(track_popularity)) %>%
       arrange(desc(mean_popularity)) %>%
       head(10)
-
+    
     p <- ggplot(
       top10_df,
       aes(x = mean_popularity, y = reorder(track_artist, mean_popularity))
@@ -284,17 +283,33 @@ app$callback(
   list(input("artist_selection", "value")),
   function(artist) {
     df_artist <- df[df$track_artist == artist, ]
-
+    
     p <- ggplot(df_artist, aes(x = date, y = track_popularity)) +
       geom_line(stat = "summary", fun = mean) +
-      labs(x = "Date", y = "Average track Popularity") +
+      labs(x = "Date", y = "Average Track Popularity") +
       scale_x_date(date_labels = "%b-%Y") +
       ggthemes::scale_color_tableau()
-
+    
     ggplotly(p)
   }
 )
 
+# Artist Record Plot ----
+app$callback(
+  output('artist_pop_hist_id', 'figure'),
+  list(input('artist_selection', 'value')),
+  function(xcol) {
+    chart <- ggplot2::ggplot(data %>% dplyr::filter(track_artist == xcol)) + aes(
+      x = track_popularity ) + ggplot2::geom_histogram() + ggplot2::geom_vline(
+        data = data %>% dplyr::filter(track_artist == xcol),
+        aes(xintercept = mean(track_popularity),
+            colour="red")) + ggplot2::labs(
+              x = "Track popularity",
+              y = "Count",
+              colour="Mean popularity" )
+    ggplotly(chart) %>% layout(dragmode = 'select')
+  }
+)
 
 # Song Characteristic Distribution Plot ----
 
@@ -310,26 +325,23 @@ app$callback(
     input("xcol-widget", "value")
   ),
   function(genre, feat) {
+    
     data_pop <- df
     data_pop$`Duration (min)` <- data_pop$duration_ms / 60000
-    data_pop$`Popularity class` <- if_else(
+    data_pop$`Popularity class` = if_else(
       data_pop$track_popularity <= median(data_pop$track_popularity),
       "Not popular",
       "Popular"
     )
     data_pop$Genres <- data_pop$playlist_genre
-    data_pop$Genres <- replace(
-      data_pop$Genres,
-      data_pop$Genres == "edm",
-      "electronic dance music"
-    )
+    data_pop$Genres <- replace(data_pop$Genres, 
+                               data_pop$Genres == "edm", 
+                               "electronic dance music")
     data_pop_query <- data_pop %>%
       filter(Genres == genre)
     plot <- ggplot(data_pop_query) +
-      aes(
-        x = !!sym(feat),
-        color = `Popularity class`
-      ) +
+      aes(x = !!sym(feat),
+          color = `Popularity class`) +
       geom_density() +
       labs(x = str_to_title(feat)) +
       theme(
