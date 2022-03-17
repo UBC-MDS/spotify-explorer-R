@@ -170,7 +170,7 @@ get_artist_section <- htmlDiv(
             dccGraph(id='artist_pop_hist_id')
           ), width = 6)
         ))
-      ), width = 8)
+      ), width = list("offset" = 1, "size" = 7))
     ))
   )
 )
