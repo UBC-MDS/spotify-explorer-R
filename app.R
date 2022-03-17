@@ -167,8 +167,7 @@ get_artist_section <- htmlDiv(
           )),
           dbcCol(list(
             htmlH3("Artist's Popularity Record"),
-            htmlH4("Plot 3 Here")
-            # dccGraph(id='artist_pop_hist_id')
+            dccGraph(id='artist_pop_hist_id')
           ))
         ))
       ))
@@ -300,14 +299,18 @@ app$callback(
   output('artist_pop_hist_id', 'figure'),
   list(input('artist_selection', 'value')),
   function(xcol) {
-    chart <- ggplot2::ggplot(data %>% dplyr::filter(track_artist == xcol)) + aes(
-      x = track_popularity ) + ggplot2::geom_histogram() + ggplot2::geom_vline(
-        data = data %>% dplyr::filter(track_artist == xcol),
+    chart <- ggplot(df %>% 
+                      filter(track_artist == xcol)) + 
+      aes(x = track_popularity ) + 
+      geom_histogram() +
+      geom_vline(
         aes(xintercept = mean(track_popularity),
-            colour="red")) + ggplot2::labs(
-              x = "Track popularity",
-              y = "Count",
-              colour="Mean popularity" )
+            colour="red")) +
+      labs(
+        x = "Track popularity",
+        y = "Count",
+        colour="Mean popularity" )
+    
     ggplotly(chart) %>% layout(dragmode = 'select')
   }
 )
@@ -356,4 +359,3 @@ app$callback(
 # App server --------------
 
 app$run_server(debug = T)
-# app$run_server(host = '0.0.0.0')
