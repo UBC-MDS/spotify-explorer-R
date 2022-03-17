@@ -166,8 +166,9 @@ get_artist_section <- htmlDiv(
             dccGraph(id = "artist_trend_plot")
           )),
           dbcCol(list(
-            htmlH3("Artist's Popularity Record")
-            #dccGraph(id='artist_pop_hist_id')
+            htmlH3("Artist's Popularity Record"),
+            htmlH4("Plot 3 Here")
+            # dccGraph(id='artist_pop_hist_id')
           ))
         ))
       ))
@@ -228,8 +229,8 @@ get_popularity_section <- htmlDiv(
     dbcRow(list(
       popularity_sidebar_widgets,
       dbcCol(list(
-        htmlH3("Song Characteristics Distribution between Two Popularity Classes")
-        # dccGraph(id = "pop_unpop_id_plot")
+        htmlH3("Song Characteristics Distribution between Two Popularity Classes"),
+        dccGraph(id = "pop_unpop_id_plot")
       ))
     ))
   )
@@ -314,10 +315,11 @@ app$callback(
 # Song Characteristic Distribution Plot ----
 
 #' Plot density plot of song characteristics distribution with two popularity classes
-#'
+#' 
 #' @param genre genre of songs
 #' @param feat song features to explore on x-axis
 #' @return a ggplot showing the distribution
+
 app$callback(
   output("pop_unpop_id_plot", "figure"),
   list(
@@ -353,5 +355,5 @@ app$callback(
 
 # App server --------------
 
-# app$run_server(debug = T)
-app$run_server(host = '0.0.0.0')
+app$run_server(debug = T)
+# app$run_server(host = '0.0.0.0')
