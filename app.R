@@ -230,7 +230,7 @@ get_popularity_section <- htmlDiv(
       dbcCol(list(
         htmlH3("Song Characteristics Distribution between Two Popularity Classes"),
         dccGraph(id = "pop_unpop_id_plot")
-      ))
+      ), width = list("offset" = 1, "size" = 7))
     ))
   )
 )
