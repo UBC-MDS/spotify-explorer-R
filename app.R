@@ -24,7 +24,7 @@ app <- Dash$new(
   suppress_callback_exceptions = T
 )
 
-app$title("Spotify Explorer App")
+app$title("Spotify Explorer")
 
 
 # Navbar -------------
@@ -164,13 +164,13 @@ get_artist_section <- htmlDiv(
           dbcCol(list(
             htmlH3("Artist's Popularity Over Time"),
             dccGraph(id = "artist_trend_plot")
-          )),
+          ), width = 6),
           dbcCol(list(
             htmlH3("Artist's Popularity Record"),
             dccGraph(id='artist_pop_hist_id')
-          ))
+          ), width = 6)
         ))
-      ))
+      ), width = 8)
     ))
   )
 )
@@ -358,4 +358,4 @@ app$callback(
 
 # App server --------------
 
-app$run_server(debug = T)
+app$run_server(host = '0.0.0.0')
