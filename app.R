@@ -12,7 +12,6 @@ library(here)
 library(tidyverse)
 library(dashBootstrapComponents)
 library(dashCoreComponents)
-library(ggthemes)
 
 # Read data ------
 
@@ -309,8 +308,7 @@ app$callback(
       geom_line(stat = "summary", fun = mean, color = '#5DBB63', size = 1) +
       geom_point(stat = "summary", fun = mean, color = '#99EDC3', size = 1) +
       labs(x = "Date", y = "Average Track Popularity") +
-      scale_x_date(date_labels = "%b-%Y") +
-      ggthemes::scale_color_tableau()
+      scale_x_date(date_labels = "%b-%Y") 
     
     ggplotly(p2)
   }
