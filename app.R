@@ -10,6 +10,9 @@ library(readr)
 library(dplyr)
 library(here)
 library(tidyverse)
+library(dashBootstrapComponents)
+library(dashCoreComponents)
+library(ggthemes)
 
 # Read data ------
 
@@ -115,10 +118,15 @@ artist_sidebar_widgets <- dbcCol(
   children = list(
     htmlH2("Overview", className = "display-30"),
     htmlH6(
+      list(
       "Welcome! This is a dashboard displaying trends in popularity of artists, \
-                genres and song types in Spotify. Happy exploring!",
-      className = "display-30",
-    ),
+                genres and song types in Spotify. Happy exploring! ",
+      htmlBr(),
+      htmlBr(),
+      "This section shows popularity of artists by genre and over time, as well as artist's distribution of popularity.",
+      htmlBr()
+      ),
+      className = "display-30"),
     htmlBr(),
     htmlBr(),
     htmlH5("Artist Genre:"),
@@ -161,13 +169,14 @@ get_artist_section <- htmlDiv(
           htmlH3("Top Artists by Genre"),
           dccGraph(id = "top_artists_plot")
         )),
+        htmlBr(),
         dbcRow(list(
           dbcCol(list(
-            htmlH3("Artist's Popularity Over Time"),
+            htmlH4("Artist's Popularity Over Time"),
             dccGraph(id = "artist_trend_plot")
           ), width = 6),
           dbcCol(list(
-            htmlH3("Artist's Popularity Record"),
+            htmlH4("Artist's Popularity Record"),
             dccGraph(id='artist_pop_hist_id')
           ), width = 6)
         ))
@@ -181,7 +190,18 @@ get_artist_section <- htmlDiv(
 
 popularity_sidebar_widgets <- dbcCol(
   children = list(
-    htmlH2("Explore music characteristics", className = "display-30"),
+    htmlH2("Music characteristics", className = "display-30"),
+    htmlH6(
+      list(
+        "This section shows song characteristics for popular/not-popular songs of different genres.",
+        htmlBr(),
+        htmlBr(),
+        htmlB('Popular: '), "Songs rated higher than median popularity.",
+        htmlBr(),
+        htmlB('Not popular: '), "Vice versa."
+      ),
+      className="display-30",
+    ),
     htmlBr(),
     htmlH5("Music Features:"),
     dccDropdown(
@@ -272,7 +292,7 @@ app$callback(
       top10_df,
       aes(x = mean_popularity, y = reorder(track_artist, mean_popularity))
     ) +
-      geom_bar(stat = "identity") +
+      geom_bar(stat = "identity", fill = '#5DBB63') +
       labs(x = "Average Track Popularity", y = "Artist")
     ggplotly(p)
   }
@@ -285,13 +305,14 @@ app$callback(
   function(artist) {
     df_artist <- df[df$track_artist == artist, ]
     
-    p <- ggplot(df_artist, aes(x = date, y = track_popularity)) +
-      geom_line(stat = "summary", fun = mean) +
+    p2 <- ggplot(df_artist, aes(x = date, y = track_popularity)) +
+      geom_line(stat = "summary", fun = mean, color = '#5DBB63', size = 1) +
+      geom_point(stat = "summary", fun = mean, color = '#99EDC3', size = 1) +
       labs(x = "Date", y = "Average Track Popularity") +
       scale_x_date(date_labels = "%b-%Y") +
       ggthemes::scale_color_tableau()
     
-    ggplotly(p)
+    ggplotly(p2)
   }
 )
 
@@ -301,9 +322,9 @@ app$callback(
   list(input('artist_selection', 'value')),
   function(xcol) {
     chart <- ggplot(df %>% 
-                      filter(track_artist == xcol)) + 
+                      dplyr::filter(track_artist == xcol)) + 
       aes(x = track_popularity ) + 
-      geom_histogram() +
+      geom_histogram(fill = '#5DBB63') +
       geom_vline(
         aes(xintercept = mean(track_popularity),
             colour="red")) +
