@@ -5,17 +5,10 @@ library(dash)
 library(dashHtmlComponents)
 library(ggplot2)
 library(plotly)
-library(purrr)
-library(readr)
-library(dplyr)
-library(here)
-library(tidyverse)
-library(dashBootstrapComponents)
-library(dashCoreComponents)
 
 # Read data ------
 
-df <- read_csv(here("data", "raw", "spotify.csv"))
+df <- readr::read_csv(here::here("data", "raw", "spotify.csv"))
 df <- na.omit(df)
 
 df$date <- as.Date(df$track_album_release_date, format = "%Y-%m-%d")
@@ -282,17 +275,17 @@ app$callback(
   function(genre_select) {
     top10_df <- df %>%
       dplyr::filter(playlist_genre == genre_select) %>%
-      group_by(track_artist) %>%
-      summarise(mean_popularity = mean(track_popularity)) %>%
-      arrange(desc(mean_popularity)) %>%
+      dplyr::group_by(track_artist) %>%
+      dplyr::summarise(mean_popularity = mean(track_popularity)) %>%
+      dplyr::arrange(desc(mean_popularity)) %>%
       head(10)
     
-    p <- ggplot(
+    p <- ggplot2::ggplot(
       top10_df,
       aes(x = mean_popularity, y = reorder(track_artist, mean_popularity))
     ) +
-      geom_bar(stat = "identity", fill = '#5DBB63') +
-      labs(x = "Average Track Popularity", y = "Artist")
+      ggplot2::geom_bar(stat = "identity", fill = '#5DBB63') +
+      ggplot2::labs(x = "Average Track Popularity", y = "Artist")
     ggplotly(p)
   }
 )
@@ -302,13 +295,15 @@ app$callback(
   output("artist_trend_plot", "figure"),
   list(input("artist_selection", "value")),
   function(artist) {
-    df_artist <- df[df$track_artist == artist, ]
+    # df_artist <- df[df$track_artist == artist, ]
     
-    p2 <- ggplot(df_artist, aes(x = date, y = track_popularity)) +
-      geom_line(stat = "summary", fun = mean, color = '#5DBB63', size = 1) +
-      geom_point(stat = "summary", fun = mean, color = '#99EDC3', size = 1) +
-      labs(x = "Date", y = "Average Track Popularity") +
-      scale_x_date(date_labels = "%b-%Y") 
+    p2 <- ggplot2::ggplot(df %>%
+                   dplyr::filter(track_artist == artist),
+                 aes(x = date, y = track_popularity)) +
+      ggplot2::geom_line(stat = "summary", fun = mean, color = '#5DBB63', size = 1) +
+      ggplot2::geom_point(stat = "summary", fun = mean, color = '#99EDC3', size = 1) +
+      ggplot2::labs(x = "Date", y = "Average Track Popularity") +
+      ggplot2::scale_x_date(date_labels = "%b-%Y") 
     
     ggplotly(p2)
   }
@@ -319,14 +314,14 @@ app$callback(
   output('artist_pop_hist_id', 'figure'),
   list(input('artist_selection', 'value')),
   function(xcol) {
-    chart <- ggplot(df %>% 
+    chart <- ggplot2::ggplot(df %>% 
                       dplyr::filter(track_artist == xcol)) + 
-      aes(x = track_popularity ) + 
-      geom_histogram(fill = '#5DBB63') +
-      geom_vline(
+      ggplot2::aes(x = track_popularity ) + 
+      ggplot2::geom_histogram(fill = '#5DBB63') +
+      ggplot2::geom_vline(
         aes(xintercept = mean(track_popularity),
             colour="red")) +
-      labs(
+      ggplot2::labs(
         x = "Track popularity",
         y = "Count",
         colour="Mean popularity" )
@@ -353,23 +348,30 @@ app$callback(
     
     data_pop <- df
     data_pop$`Duration (min)` <- data_pop$duration_ms / 60000
-    data_pop$`Popularity class` = if_else(
-      data_pop$track_popularity <= median(data_pop$track_popularity),
-      "Not popular",
-      "Popular"
-    )
+    data_pop <- data_pop %>%
+      mutate(
+        Popularity_class = dplyr::case_when(
+          track_popularity <= stats::median(track_popularity) ~ "Not popular",
+          TRUE ~ "Popular"
+        )
+      )
+    # data_pop$Popularity_class = if_else(
+    #   data_pop$track_popularity <= stats::median(data_pop$track_popularity),
+    #   "Not popular",
+    #   "Popular"
+    # )
     data_pop$Genres <- data_pop$playlist_genre
     data_pop$Genres <- replace(data_pop$Genres, 
                                data_pop$Genres == "edm", 
                                "electronic dance music")
     data_pop_query <- data_pop %>%
-      filter(Genres == genre)
-    plot <- ggplot(data_pop_query) +
-      aes(x = !!sym(feat),
-          color = `Popularity class`) +
-      geom_density() +
-      labs(x = str_to_title(feat)) +
-      theme(
+      dplyr::filter(Genres == genre)
+    plot <- ggplot2::ggplot(data_pop_query) +
+      ggplot2::aes(x = !!sym(feat),
+          color = Popularity_class) +
+      ggplot2::geom_density() +
+      ggplot2::labs(x = stringr::str_to_title(feat)) +
+      ggplot2::theme(
         text = element_text(size = 14)
       )
     ggplotly(plot)
