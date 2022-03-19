@@ -43,7 +43,7 @@ navbar <- dbcNavbar(
       htmlA(
         dbcRow(
           list(
-            dbcCol(htmlImg(src = "https://www.freepnglogos.com/uploads/spotify-logo-png/spotify-icon-marilyn-scott-0.png", height = "50px")),
+            dbcCol(htmlImg(src = "assets/img/spotify-ex.png", height = "50px")),
             dbcCol(dbcNavbarBrand("Spotify Explorer", className = "py-10"))
           ),
           align = "center",
