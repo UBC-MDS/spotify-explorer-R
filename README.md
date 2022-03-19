@@ -2,6 +2,21 @@
 
 Spotify Explorer is a data visualization dashboard app (built on Dash) displaying insights and trends on Spotify's music, artists and song types. This app is made for anyone who's keen in discovering what lies underneath a vast data collected on Spotify's platform, be they music enthusiasts or music business executives.
 
+## Table of Contents
+
+- [The App](#the-app)
+  - [Motivation and Purpose](#motivation-and-purpose)
+  - [Dashboard description](#dashboard-description)
+  - [App Design](#app-design)
+  - [If you want to help further develop the app](#if-you-want-to-help-further-develop-the-app)
+  - [Contributing](#contributing)
+  - [App Contributors](#app-contributors)
+  - [License](#license)
+
+## The APP
+
+You can access the dashboard app here: [Spotify Explorer](https://spotify-explorer-r.herokuapp.com/)
+
 ## Motivation and Purpose
 
 Our purpose for developing this app can be branched into 2 main goals: to help others discover more about the artists, genres they care about and to help the music industry solve business problems with data. As music enthusiasts ourselves, we wanted to help fellow music fans understand more about their favourite artists, genres and song types. Furthermore, the app would be beneficial for music industry professionals who want to make business decisions on which artists and genres to develop their business in.
@@ -14,7 +29,7 @@ Below are just a couple of potential problem-solving scenarios to achieve these 
 
 ## Dashboard description
 
-The app contains 2 tabs that shows a total of four plots with sidebar widgets allowing users to control filtering 
+The app contains 2 tabs that shows a total of four plots with sidebar widgets allowing users to control filtering
 options for the plots.
 
 - **Top artists with an average popularity score (filtered by Genre)** <br>
@@ -26,19 +41,20 @@ Based on the artist chosen from the previous drop down list, this plot will show
 - **Popular Song Characteristics (filtered by Genre)** <br>
 Finally, a seperate drop down list for song characteristics help users choose from a list of attributes such as `loudness`, `danceability`, etc. The plot then shows the relationship of the chosen attribute with `popularity` through a scatter plot.
 
-
 ## App Design
 
-<img width="919" src="./img/dashboard_gif.gif">
-
+<img width="919" src="./img/r-demo.gif">
 
 ## If you want to help further develop the app
+
 1. Fork [the repository](https://github.com/UBC-MDS/spotify-explorer-R/)
-2. To run the app locally, run the following command from the root of this repository   
+2. To run the app locally, run the following command from the root of this repository
+
 ```R
 Rscript app.R
 ```
-1. Create an issue on this repo to inform the Team about the changes/improvements you want to make. See **Contributing** section below for more details.
+
+3. Create an issue on this repo to inform the Team about the changes/improvements you want to make. See **Contributing** section below for more details.
 
 ## Contributing
 
@@ -53,5 +69,4 @@ Interested in contributing? Check out the contributing guidelines. Please note t
 
 ## License
 
-`spotify-explorer-R` was created by Christopher Alexander, Jennifer Hoang, Thea Wenxin and Michelle Wang. It is licensed under the terms of the [MIT License](https://github.com/UBC-MDS/spotify-explorer-R/blob/main/LICENSE).
-
+`spotify-explorer-R` was created by Christopher Alexander, Jennifer Hoang, Thea Wenxin Xiang and Michelle Wang. It is licensed under the terms of the [MIT License](https://github.com/UBC-MDS/spotify-explorer-R/blob/main/LICENSE).
