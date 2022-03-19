@@ -48,13 +48,14 @@ Finally, a seperate drop down list for song characteristics help users choose fr
 ## If you want to help further develop the app
 
 1. Fork [the repository](https://github.com/UBC-MDS/spotify-explorer-R/)
-2. To run the app locally, run the following command from the root of this repository
+2. To run the app locally, install R and all required packages listed in [init.R](https://github.com/UBC-MDS/spotify-explorer-R/blob/main/init.R)
+3. Run the following command from the root of this repository
 
 ```R
 Rscript app.R
 ```
 
-3. Create an issue on this repo to inform the Team about the changes/improvements you want to make. See **Contributing** section below for more details.
+4. Create an issue on this repo to inform the Team about the changes/improvements you want to make. See **Contributing** section below for more details.
 
 ## Contributing
 
